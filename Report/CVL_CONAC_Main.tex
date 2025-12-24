@@ -1,0 +1,705 @@
+% ============================================
+%         Preset 1. Document Type
+% ============================================
+\documentclass[conference]{IEEEtran}
+
+% THIS IS NEEDED FOR FINAL SUBMISSION
+\IEEEoverridecommandlockouts 
+% This command is only needed if you want to use the \thanks commands  
+%\overrideIEEEmargins 
+% Needed to meet printer requirements.
+
+% ============================================
+%         Preset 2. Local Path
+% ============================================
+% When you create "figures" or "movies" directories in the "src" (source code) directory, the file name including path can be long.
+% To avoid this, and to make it easier to adjust, you can define the alias for the path.
+% The examples are provided below.
+
+\newcommand*{\FIGURESPATH}{./figures}
+% \newcommand*{\SIMFIGURESPATH}{./src/script_simulation/figures}
+% \newcommand*{\SLXFIGURESPATH}{./src/simulink_simulation/figures}
+% \newcommand*{\MOVIESPATH}{./movies}
+
+% ============================================
+%         Preset 3. Pre-defined Settings
+% ============================================
+% PLEASE DO NOT ADD OR REMOVE PACKAGES IN THE SUBMODULE LOCALLY!
+% CONTACT THE AUTHOR FOR ADJUSTMENTS.
+%
+% The packages are pre-defined in the submodule "Template".
+% If you need more packages, please add them after using pre-defined packages.
+
+\def\cmt{true} % true for comments, false for no comments
+\def\pub{false} % true for publication, false for draft
+\newcommand*{\template}{.}                                                                                  % Path to the template directory
+\input{\template/preamble/preamble_conf.tex}
+
+% ============================================
+%     Preset 4. Additional Corrections
+% ============================================
+% correct bad hyphenation here
+% \hyphenation{op-tical net-works semi-conduc-tor}
+% \pagestyle{empty}
+
+\begin{document}
+
+% ============================================
+%            TITLE and AUTHORS
+% ============================================
+\title{
+  CVL-based Constrained Optimization Neuro-Adaptive Control (CVL-CONAC) for Uncertain Control-Affine Systems
+}
+% \author{
+%   \IEEEauthorblockN{Naol Samuel Erega}
+%   \IEEEauthorblockA{\textit{Department of Aerospace Engineering} \\ % Replaced "-" with dept
+%     \textit{Korea Advanced Institute of Science and Technology (KAIST)} \\
+%     Daejeon, Republic of Korea \\
+%     samuelnaol7@kaist.ac.kr}
+%   \and
+%   \IEEEauthorblockN{Myeongseok Ryu}
+%   \IEEEauthorblockA{\textit{Cho Chun Shik Graduate School of Mobility} \\
+%     \textit{Korea Advanced Institute of Science and Technology (KAIST)}\\
+%     Daejeon, Republic of Korea \\
+%     dding\_98@kaist.ac.kr}
+%   \and
+%   \IEEEauthorblockN{Kyunghwan Choi}
+%   \IEEEauthorblockA{\textit{Cho Chun Shik Graduate School of Mobility} \\
+%     \textit{Korea Advanced Institute of Science and Technology (KAIST)} \\
+%     Daejeon, Republic of Korea \\
+%     kh.choi@kaist.ac.kr}
+% }
+
+\author{
+    \IEEEauthorblockN{Naol Samuel Erega, Myeongseok Ryu, and Kyunghwan Choi}
+    \thanks{N.\ S.\ Erega is with the Dept.\ of Aerospace Engineering, KAIST, Daejeon, Republic of Korea (email: samuelnaol7@kaist.ac.kr).}
+    \thanks{M.\ Ryu and K.\ Choi are with the Cho Chun Shik Graduate School of Mobility, KAIST, Daejeon, Republic of Korea (email: \{dding\_98, kh.choi\}@kaist.ac.kr).}
+}
+    
+\maketitle
+\thispagestyle{empty}
+
+% ============================================
+%         ABSTRACT and KEYWORDS
+% ============================================
+\begin{abstract}
+  This study proposes a Convolutional Layer (CVL)-based Constrained Optimization
+  Neuro-Adaptive Controller (CVL-CONAC) for uncertain control-affine nonlinear
+  systems. The controller approximates the ideal stabilizing law using a hybrid
+  CVL-FCL architecture that processes historical state data, ensuring a robust
+  representation of system dynamics. The adaptation law is derived by formulating
+  the control problem as a constrained minimization problem of the tracking error,
+  subject to weight norm constraints and control input norm constraints. Stability
+  analysis, based on the Lyapunov approach, rigorously proves that the tracking
+  error and all network weight vectors remain Uniformly Ultimately Bounded(UUB),
+  thereby ensuring stable and constrained online adaptation.
+\end{abstract}
+
+\begin{IEEEkeywords}
+  Neuro-adaptive control, Constrained optimization, Convolutional Layers (CVL),
+  Lyapunov approach, Asymptotic convergence.
+\end{IEEEkeywords}
+
+% ============================================
+%         Notation
+% ============================================
+\section*{Notation}
+In this study, the following notation is used:
+
+\begin{itemize}
+  \item $\R^n$ denotes the $n$-dimensional Euclidean space.
+  \item $\R^{n\times m}$ denotes the set of $n\times m$ real matrices.
+  \item A vector and a matrix are denoted by $\mv{x}=[x_i]\in\R^n$ and $\mm
+          A:=[a_{ij}]\in\R^{n\times m}$, respectively.
+  \item $\mm I_n$ denotes the $n\times n$ identity matrix, and $\mm 0_{n\times
+              m}$ denotes the $n\times m$ zero matrix.
+  \item $\myvec(\mm A)$ denotes the vectorization of the matrix $\mm A$.
+  \item A matrix $\mm P \succ 0$ ($\mm P \succeq 0$) is positive definite
+        (positive semidefinite).
+  \item $\lambda_{\min}(\mm A)$ denotes the minimum eigenvalue of the matrix
+        $\mm A \in \R^{n \times n}$.
+  \item $\otimes$ denotes the Kronecker product \cite{Bernstein:2009aa}.
+\end{itemize}
+
+
+%----------------------------------------------------------------%
+%--- I. INTRODUCTION --------------------------------------------%
+%----------------------------------------------------------------%
+\section{Introduction}
+
+\subsection{Motivation and Background}
+
+Neuro-Adaptive Control (NAC) has emerged as a crucial tool for controlling
+systems with unknown dynamics, leveraging the universal approximation
+capabilities of Neural Networks (NNs)~[??]. While traditional Lyapunov-based
+NACs primarily focus on ensuring the boundedness of the tracking error and
+weight estimation error~[??], two key challenges persist in practical
+implementation: managing the potential divergence of NN weights and satisfying
+physical input constraints imposed by actuators[??].
+
+The Constrained Optimization-Based Neuro-Adaptive Control (CONAC) framework
+addresses these limitations by embedding both weight and input constraints
+directly into the adaptation process via a unified constrained optimization
+problem[??]. This framework solves the dual optimization problem by updating
+both the weights and the Lagrange multipliers, guaranteeing satisfaction of the
+Karush-Kuhn-Tucker (KKT) conditions at steady state[??].
+
+This paper extends the CONAC methodology to incorporate the feature-capturing
+strength of a Convolutional Layer (CVL) architecture. CVLs are
+particularly well-suited for processing time-stacked historical sensor data,
+represented as a 2D input matrix \autoref{fig:architecture}, allowing the
+controller to capture spatio-temporal features essential for approximating
+complex, time-dependent dynamics[??].
+
+\subsection{Main Contributions}
+The main contributions of this study are threefold:
+\begin{itemize}
+  \item Adapting the CONAC formulation specifically for a CVL-FCL
+        architecture;
+  \item Applying the method to a generic control-affine system;
+  \item Rigorously proving the UUB of the tracking error and all network
+        weights under the derived adaptation law.
+\end{itemize}
+
+
+%----------------------------------------------------------------%
+%--- II. PROBLEM FORMULATION & CONTROL LAW ---------------------%
+%----------------------------------------------------------------%
+\section{Problem Formulation and Control Law}
+
+\subsection{System Dynamics}
+
+We consider an uncertain generic control-affine nonlinear
+system, where the control gain matrix $g(x)$ is assumed to be square and
+positive definite ($n=m$ and $g(x) \succ 0$):
+\begin{equation}
+  \label{eq:sys_full}
+  \dot{x} = f(x) + g(x)\,\mathbf{sat}(u)
+\end{equation}
+where $x \in \R^n$ is the state vector and $u \in \R^n$ is the
+control input.
+
+The system is reformulated using a Hurwitz designer matrix $A_c \in \R^{n \times n}$:
+\begin{equation}
+  \label{eq:sys_affine}
+  \dot{x} = A_c x + f_c(x) + g(x)\,\mathbf{sat}(u)
+\end{equation}
+where $f_c(x) = f(x) - A_c x$.
+
+\subsection{Ideal Control Law and Error Dynamics}
+
+The objective in defining the Ideal Control Law $u^*$ is to find a control input
+that forces the tracking error $\mathbf{e} = x - x_{ref}$ dynamics into the
+desired stable linear form $\dot{e} = A_c e$. This condition is satisfied if:
+\begin{equation*}
+  u^* = -g^{-1}(x) \big ( A_c x_{ref} + f_c(x) - \dot{x}_{ref} \big)
+\end{equation*}
+
+However, since $f_c(x)$ and $g(x)$ are unknown, the ideal controller (i.e., $u^*$)
+can't be realized. Hence, $u^*$ is approximated by the CVL-CONAC output
+$\matPhi(X, \tH)$. We assume the existence of an ideal network output
+$\PhiStar$ such that $u^* = -\PhiStar - \epsilon$, where $\epsilon$ is the bounded
+approximation error.
+
+The CVL-CONAC control input is defined as an end-to-end policy:
+\begin{equation}
+  \label{eq:control_law}
+  u = -\matPhi(X, \tH)
+\end{equation}
+Substituting this into the system dynamics, the tracking error dynamics become:
+\begin{equation}
+  \label{eq:error_dynamics}
+  \dot{e} = A_c e + g(x) \big( \PhiStar + \epsilon + \mathbf{sat}(-\matPhi) \big)
+\end{equation}
+This formulation is used for stability analysis.
+
+\begin{figure}[t]
+  \centering
+  % Use \FIGURESPATH to point to your local figures folder
+  \includegraphics[width=0.9\columnwidth, height=0.2\textheight, keepaspectratio]{\FIGURESPATH/CVLCONACArch.png}
+  \caption{Proposed CVL-CONAC architecture.}
+  \label{fig:architecture}
+\end{figure}
+
+
+%----------------------------------------------------------------%
+%--- III. CVL-CONAC ARCHITECTURE & OPTIMIZATION ----------------%
+%----------------------------------------------------------------%
+\section{System Details}
+
+\subsection{CVL-CONAC Architecture}
+
+The network $\matPhi$ is designed as a hybrid architecture suitable for
+capturing spatio-temporal dynamics from historical data[??].
+
+\subsubsection{Convolutional Layers (CLs)}
+The CVLs are represented recursively as:
+\begin{equation}
+  \label{eq:cvl_output}
+    \PhiC = 
+    \begin{cases} O(\phiC(\Phi_{j_c-1}^{C}),\Omega_{j_c},B_{j_c}), & j_c \in [1,\dots,k_c] \\ 
+      O(\phi_{0}^{C}(X),\Omega_{0},B_{0}), & j_c = 0 
+    \end{cases}
+\end{equation}
+where 
+$X \in \R^{n_0 \times m_0}$ denotes the network input matrix, 
+$O:\R^{n_{j_c} \times m_{j_c}} \times \R^{p_{j_c} \times m_{j_c}
+  \times q_{j_c}} \times \R^{q_{j_c}} \to \R^{n_{j_c+1} \times
+  m_{j_c+1}}$ denotes the CNN operator (see Appendix A), and 
+$\phiC:\R^{n_{j_c} \times m_{j_c}} \to \R^{n_{j_c} \times m_{j_c}}$
+denotes the matrix activation function 
+(i.e., $\phi^C(\Phi_{j_c-1}^{C})_{(i,j)} = \sigma_{j_c}(\Phi_{j_c-1}^{C})_{(i,j)}$) for 
+some activation function $\sigma_{j_c}: \R \to \R$. 
+The first activation function $\phi_{0}^{C}$ should be a bounded nonlinear function to ensure that the input to the 
+first CNN operator is bounded. In this study, $\alpha_1 \tanh(\cdot)$ is selected with $\alpha_1 \in \R_{>0}$. 
+The filter set $\Omega_{j_c}$ contains $q_{j_c}$ filters $W_{j_c}^{(i)} \in \R^{p_{j_c} \times
+  m_{j_c}}$, $\forall i \in [1,\dots,q_{j_c}]$, and is represented as
+$\Omega_{j_c} = \{W_{j_c}^{(1)},\dots,W_{j_c}^{(q_{j_c})}\}$, where superscript
+$i$ denotes the filter index. The bias vector $B_{j_c}$ consists of $q_{j_c}$ biases.
+
+The weights for the $j_c$-th CVL layer are collectively represented as
+$\tH_{Cj_c} \triangleq [\text{vec}(\Omega_{j_c})^T, B_{j_c}^T]^T$.
+
+\subsubsection{Fully-Connected Layers (FCLs)}
+The output matrix of the CVLs is input to the concatenate layer
+$C(\Phi_{k_c}^{C}) = [\text{vec}(\Phi_{k_c}^{C^{\top}})^{\top}, 1]^{\top}$
+before the input layer of FCLs for compatibility between the CVLs and FCLs.
+The FCLs are represented recursively as:
+\begin{equation}
+  \label{eq:fcl_output}
+    \Phi_{j_f}^{F} = 
+    \begin{cases} 
+      V_{j_f}^{\top}\phiF(\Phi_{j_f-1}^{F}), & j_f \in [1,\dots,k_f] \\ 
+      V_{0}^{\top}C(\Phi_{k_c}^{C}), & j_f = 0 
+    \end{cases}
+\end{equation}
+where 
+$V_{j_f} \in \R^{l_{j_f}+1 \times l_{j_f+1}}$ denotes the weightmatrix, 
+$\phiF: \R^{l_{j_f}} \to \R^{l_{j_f}+1}$ denotes the vector activation function defined by
+$\phiF(\Phi_{j_f-1}^{F}) \triangleq [\sigma_{j_f}(\Phi_{j_f-1}^{F})^\top, 1]^\top$ for $j_f \in [1,\dots,k_f-1]$,
+for some nonlinear activation functions $\sigma_{j_f}: \R \to \R$ such as $\tanh(\cdot)$. 
+Note that $C(\Phi_{k_c}^{C})$ and $\Phi_{j_f}^{F}$ are augmented by $1$ to consider the 
+bias of the preceding input layer as a weight in the weight matrix. The output of the FCLs is the
+final output of the CNN architecture and is represented as $\matPhi \equiv \Phi_{k_f}^{F}$.
+
+The FCL weights for the $j_f$-th layer are $\tH_{Fj_f} \triangleq \text{vec}(V_{j_f})$.
+
+%----------------------------------------------------------------%
+%--- IV. ADAPTATION LAWS ----------------------------------------%
+%----------------------------------------------------------------%
+\section{Adaptation Laws}
+
+\subsection{Optimization Problem}
+The adaptation law is derived by solving the following constrained minimization
+problem. We first define the complete set of trainable weights to be
+constrained:
+\begin{equation}
+  \label{eq:total_index_set}
+  \matI = \{C0, C1, \dots, Ck_c\} \cup \{F0, F1, \dots, Fk_f\}
+\end{equation}
+The constrained minimization problem is:
+\begin{equation}
+  \label{eq:optimization}
+  \begin{aligned}
+    \min_{\tH} \quad & \matJ(e, \tH) = \frac{1}{2}e^{\top}e \\
+    \text{s.t.} \quad & c_i(\tH) = \frac{1}{2} \left( \|\tH_i\|^2 - 
+    \bar{\theta}_i^2 \right) \le 0, \quad \forall i \in \matI \\
+    & c_{\Phi}(\tH) = \frac{1}{2} \left( \|\matPhi\|^2 - \bar{u}^2 \right) \le 0
+  \end{aligned}
+\end{equation}
+where $c_i$ are the weight norm constraints (ensuring boundedness) and
+$c_{\Phi}$ is the output norm constraint (ensuring input saturation limits
+$\bar{u}$ are respected).
+The Lagrangian function is made generic over the index set $\matI$:
+\begin{equation}
+  \label{eq:lagrangian}
+  \matL(\tH, \boldsymbol{\lambda}) = \frac{1}{2}e^{\top}e + \sum_{i \in \matI} 
+  \lambda_i c_i(\tH) + \lambda_{\Phi} c_{\Phi}(\tH)
+\end{equation}
+where $\lambda_i, \lambda_{\Phi} \ge 0$ are the Lagrange multipliers.
+
+\subsection{Primal Update}
+The weight update for each block $\tH_i$ is proportional to the
+negative gradient of the Lagrangian: $\dot{\tH}_i = -\alpha
+\nabla_{\tH_i} \matL$.
+
+\subsubsection{Objective Gradient ($\nabla_{\tH_i} \matJ$)} The
+objective gradient is approximated using the chain rule and the sensitivity 
+approximation $\frac{\partial x}{\partial u} \approx \mathbf{I_n}$:
+\begin{equation*}
+  \nabla_{\tH_i} \matJ = \left(\frac{\partial e}{\partial \tH_i}
+  \right)^T e \approx \left(\frac{\partial x}{\partial u}\frac{\partial u}{\partial \tH_i}\right)^T e =
+  - \left(\frac{\partial \matPhi}{\partial \tH_i}\right)^T e
+\end{equation*}
+
+\subsubsection{Constraint Gradients ($\nabla_{\tH_i} c_j$)}
+The gradients of the constraints are:
+\begin{itemize}
+    \item Weight Constraint: $\nabla_{\tH_i} c_i = \tH_i$
+    \item Output Constraint : $\nabla_{\tH_i} c_{\Phi} = \left(\frac{\partial \matPhi}{\partial \tH_i}\right)^T \matPhi$
+\end{itemize}
+
+\subsubsection{Final Primal Update Rule}
+The resulting weight update rule for block $\tH_i$ is:
+\begin{equation}
+  \label{eq:primal_update}
+  \dot{\tH}_i = \alpha \left[ \left(\frac{\partial \matPhi}{\partial \tH_i}\right)^T e - 
+  \lambda_i \tH_i - \lambda_{\Phi} \left(\frac{\partial \matPhi}{\partial \tH_i}\right)^T \matPhi \right]
+\end{equation}
+where $\alpha \in \R_{>0}$ is the learning rate.
+
+\subsection{Dual Update}
+The Lagrange multipliers are updated using projected gradient ascent:
+\begin{align}
+  \label{eq:dual_update}
+  \dot{\lambda}_j &= \beta_j c_j(\tH), \quad \forall j \in \{i, \Phi\} \\
+  \lambda_j &= \max(\lambda_j,0)
+\end{align}
+where $\beta_j \in \R_{>0}$ is the update rate for the corresponding multiplier[??].
+
+\subsection{Network Jacobians}
+The adaptation law requires the block Jacobians $\matPhi_i' \triangleq
+\frac{\partial \matPhi}{\partial \tH_i}$, where $\matPhi \equiv
+\Phi_{k_f}^{F}$.
+
+\subsubsection{FCL Jacobians ($\tH_{F j_f}$, $j_f \in [0, \dots, k_f]$)}
+
+The Jacobians of $\matPhi$ with respect to the weights of FCLs are derived
+recursively.
+
+For the input layer weights ($j_f = 0$):
+\begin{equation}
+  \label{eq:jac_f0_generic}
+  \frac{\partial \matPhi}{\partial \text{vec}(V_{0})} = \Big(\prod_{l=1}^{k_f} 
+  V_{l}^{\top} \phi_{l}^{F'} \Big) (I_{l_0} \otimes C(\Phi_{k_c}^{C}))
+\end{equation}
+
+For the inner and output layer weights ($j_f \in [1, \dots, k_f]$):
+\begin{equation}
+  \label{eq:jac_f_j_generic}
+  \frac{\partial \matPhi}{\partial \text{vec}(V_{j_f})} = \Big(\prod_{l=j_f+1}^{k_f} V_{l}^{\top} 
+  \phi_{l}^{F'} \Big) (I_{l_{j_f}} \otimes \Phi_{j_f-1}^{F^{\top}})
+\end{equation}
+where $\phi_{j_f}^{F'} \triangleq \frac{\partial \phi_{j_f}^{F}(x)}{\partial x}$
+is the Jacobian of the activation function with respect to some vector $x$.
+
+\subsubsection{CVL Jacobians ($\tH_{C j_c}$, $j_c \in [0, \dots, k_c]$)}
+
+The Jacobians of $\matPhi$ with respect to the weights of CVLs (filters
+$\Omega_{j_c}$ and biases $B_{j_c}$) are derived using the backpropagation
+method, linking the output sensitivity $\frac{\partial \matPhi}{\partial
+\PhiC}$ backward through the convolutional layers.
+
+Let $\Phi_i$ denote the $i$-th output of $\matPhi$. The Jacobians are:
+\begin{IEEEeqnarray}{l}
+  \frac{\partial \Phi_i}{\partial W_{j_c}^{l_k}} =
+  \sum_{l_i=1}^{n_{j_c+1}} 
+  \Big(
+  \frac{\partial \Phi_i}{\partial \PhiC(l_i,l_k)}
+  \operatorname{row}(l_b:l_e) (\phiC)
+  \Big), \label{eq:jac_c_omega}
+  \\
+  \frac{\partial \Phi_i}{\partial B_{j_c}(l_k)} =
+  \sum_{l_i=1}^{n_{j_c+1}} 
+  \Big(
+  \frac{\partial \Phi_i}{\partial \PhiC(l_i,l_k)}
+  \cdot 1
+  \Big), \label{eq:jac_c_bias}
+\end{IEEEeqnarray}
+with $l_b \triangleq l_i$, $l_e \triangleq l_i+p_{j_c}-1$,  $j_c \in [0, \dots, k_c]$
+
+for all $l_k \in [1, \dots, q_{j_c}]$, where
+$\PhiC \triangleq \phiC(\Phi_{j_c-1}^{C})$ for
+$j_c \in [1, \dots, k_c]$, $\Phi_{0}^{C} \triangleq \phi_{0}^{C}(X)$, and
+$\partial \Phi_i / \partial \PhiC$ denotes the backpropagated gradient
+of $\Phi_i$ with respect to $\PhiC$
+(obtained using the back-propagation method, detailed in Appendix B).
+
+
+%----------------------------------------------------------------%
+%--- V. STABILITY ANALYSIS (CVL-CONAC) -------------------------%
+%----------------------------------------------------------------%
+\section{Stability Analysis}
+The stability analysis aims to prove that the filtered tracking error $e$ and
+all estimated weight vectors $\tH$ remain Uniformly Ultimately
+Bounded (UUB), provided the weight norm constraints are imposed.
+
+\subsection{Boundedness of $e$}
+Let the Lyapunov function for the error be $V_e = \frac{1}{2} e^T P e$, with $P$
+satisfying $A_c^T P + P A_c = -Q$ ($Q \succ 0$).
+
+The time derivative $\dot{V}_e$ is derived from the error dynamics (\ref{eq:error_dynamics}):
+$$
+  \dot{V}_e = e^T P \left[ A_c e + g(x) \big( \PhiStar + \epsilon +
+  \mathbf{sat}(-\Phi) \big) \right]
+$$ 
+Using the properties of $P$ and $A_c$, the derivative is bounded by:
+$$
+  \dot{V}_e \le -\frac{1}{2} \lambda_{\min}(Q) \|e\|^2 + \|e\| \|P g(x)\| \left(
+  \|\PhiStar\| + \|\epsilon\| + \|\mathbf{sat}(-\Phi)\| \right)
+$$ 
+Assuming the perturbations and control bounds are finite ($\Psi = \sup \{\|\PhiStar\|,
+\|\epsilon\|,\|\mathbf{sat}(-\Phi)\|\}  $) and $\|P g(x)\| \le \gamma_e$,
+the ultimate bounding set $\Omega_e$ for the tracking error $e$ is:
+$$
+  e \in \Omega_e = \left\{ e \mid \|e\| \le \frac{2 
+  \gamma_e \Psi}{\lambda_{\min}(Q)} \right\}
+$$ 
+Thus, the tracking error $e$ is UUB.
+
+\subsection{Boundedness of Output Layer Weights ($\tHF$)} 
+
+\subsubsection{Case 1: Control Input Saturated ($\lambda_{\Phi} > 0$)} In this
+case, the input constraint is active, and $\lambda_{\Phi} > 0$. We analyze the
+time derivative of the Lyapunov candidate for the estimated weights
+$V_{\tHF} = \frac{1}{2\alpha} \tHF^T \tHF$.
+
+The derivative $\dot{V}_{\tHF}$ is obtained by substituting the primal update 
+law for $\dot{\tH}_{Fj_{kf}}$:
+$$
+  \dot{V}_{\tHF} = \tHF^T (\Phi_{Fj_{kf}}')^T e - \lambda_{Fj_{kf}} 
+  \|\tHF\|^2 - \lambda_{\Phi} \tHF^T (\Phi_{Fj_{kf}}')^T \Phi
+$$
+Since the constraint term is non-positive ($-\lambda_{\Phi} \tHF^T
+(\Phi_{Fj_{kf}}')^T \Phi \le 0$), we drop it for worst-case analysis. We use the
+fact that the Jacobian norm is bounded: $\left\| (\Phi_{Fj_{kf}}')^T \right\|
+\le \gamma_{Fj_{kf}}$. Applying Cauchy-Schwarz:
+$$
+  \dot{V}_{\tHF} \le \gamma_{Fj_{kf}} \|e\| \|\tHF\| - \lambda_{Fj_{kf}} \|\tHF\|^2
+$$
+Since $\lambda_{Fj_{kf}} > 0$, $\dot{V}_{\tHF}$ is negative outside the compact set where:
+\begin{align*}
+  \tHF \in \Omega_{\tHF} \triangleq \left\{ \tHF \mid \|\tHF\| 
+  \le \frac{\gamma_{Fj_{kf}}}{\lambda_{Fj_{kf}}} \|e\| \right\}
+\end{align*}
+Since $\|e\|$ is UUB, $\tHF$ is also UUB.
+
+\subsubsection{Case 2: Control Input Not Saturated ($\lambda_{\Phi}=0$)}
+
+With $\lambda_{\Phi}=0$ we set $V_3=V_e+V_{\tH_{F_{j_{kf}}}}$ and treat
+the two parts separately.
+
+\paragraph{Error Lyapunov derivative.}
+Using the error dynamics,
+\begin{equation}
+  \dot V_e = -\tfrac{1}{2} e^\top Q e + e^\top P g(x)\big(\PhiStar + \epsilon - \matPhi\big).
+\end{equation}
+Apply the first-order expansion:
+$$
+  \PhiStar - \matPhi
+  = \matPhi'_{F_{j_{kf}}}\big(\theta^*_{F_{j_{kf}}}-\tH_{F_{j_{kf}}}\big) + \eta,
+$$
+where \(\eta\) collects higher-order terms, to obtain
+\begin{align}
+  \dot V_e
+  &= -\tfrac{1}{2} e^\top Q e
+  + e^\top P g(x)\matPhi'_{F_{j_{kf}}}\theta^*_{F_{j_{kf}}}
+  - e^\top P g(x)\matPhi'_{F_{j_{kf}}}\tH_{F_{j_{kf}}}
+  \nonumber\\[-2pt]
+  &\qquad + e^\top P g(x)(\epsilon+\eta).
+\end{align}
+
+\paragraph{Parameter Lyapunov derivative.}
+For the parameter part (adaptive law with \(\lambda_{F_{j_{kf}}}\)),
+\begin{equation}
+  \dot V_{\tH_{F_{j_{kf}}}}
+  = \tH_{F_{j_{kf}}}^\top(\matPhi'_{F_{j_{kf}}})^\top e
+  - \lambda_{F_{j_{kf}}}\|\tH_{F_{j_{kf}}}\|^2.
+\end{equation}
+
+\paragraph{Combine and group coupling terms.}
+Summing \(\dot V_e+\dot V_{\tH_{F_{j_{kf}}}}\) groups the terms with \(\tH\):
+\begin{align}
+  \dot V_3
+  &= -\tfrac{1}{2} e^\top Q e
+  + e^\top P g(x)\matPhi'_{F_{j_{kf}}}\theta^*_{F_{j_{kf}}}
+  + e^\top P g(x)(\epsilon+\eta)
+  \nonumber\\[-2pt]
+  &\qquad + e^\top\big(\matPhi'_{F_{j_{kf}}}-Pg(x)\matPhi'_{F_{j_{kf}}}\big)\tH_{F_{j_{kf}}}
+  - \lambda_{F_{j_{kf}}}\|\tH_{F_{j_{kf}}}\|^2 .
+  \label{eq:V3_combined}
+\end{align}
+
+\paragraph{Assumptions and operator bounds.}
+We use
+$$
+  e^\top Q e \ge \lambda_{\min}(Q)\|e\|^2,\quad
+  \|Pg(x)\|\le\gamma_e,\quad
+  \|\matPhi'_{F_{j_{kf}}}\|\le\gamma_{F_{j_{kf}}},
+$$
+$$
+  \|\epsilon+\eta\|\le\rho,\quad
+  \|\theta^*_{F_{j_{kf}}}\|\le\overline{\theta}_{F_{j_{kf}}}.
+$$
+And by defining:
+$$
+  M_{F_{j_{kf}}}\triangleq
+  \matPhi'_{F_{j_{kf}}}-Pg(x)\matPhi'_{F_{j_{kf}}},
+  \qquad
+  \|M_{F_{j_{kf}}}\|\le
+  \gamma_{\tH}
+  \triangleq
+  \gamma_{F_{j_{kf}}}(1+\gamma_e).
+$$
+
+\paragraph{Term-by-term bounds.}
+\begin{align*}
+  \big|e^\top Pg(x)\matPhi'_{F_{j_{kf}}}\theta^*_{F_{j_{kf}}}\big|
+  &\le
+  \gamma_e\gamma_{F_{j_{kf}}}\overline{\theta}_{F_{j_{kf}}}\|e\|,\\
+  \big|e^\top Pg(x)(\epsilon+\eta)\big|
+  &\le \gamma_e\rho\|e\|,\\
+  \big|e^\top M_{F_{j_{kf}}}\tH_{F_{j_{kf}}}\big|
+  &\le \gamma_{\tH}\|e\|\,\|\tH_{F_{j_{kf}}}\|.
+\end{align*}
+
+Apply Young's inequality to the last coupling term with design constant \(\alpha_3>0\):
+$$
+  \gamma_{\tH}\|e\|\,\|\tH\|
+  \le \frac{1}{2\alpha_3}\|e\|^2
+  + \frac{\alpha_3\gamma_{\tH}^2}{2}\|\tH\|^2.
+$$
+
+\paragraph{Final Lyapunov bound.}
+Collecting the bounds into \eqref{eq:V3_combined} yields
+\begin{align}
+  \dot V_3
+  \le&\;
+  \Big(-\tfrac{1}{2}\lambda_{\min}(Q)+\tfrac{1}{2\alpha_3}\Big)\|e\|^2
+  + \big(\gamma_e\gamma_{F_{j_{kf}}}\overline{\theta}_{F_{j_{kf}}}
+  + \gamma_e\rho\big)\|e\|
+  \nonumber\\[-2pt]
+  &\;
+  +\Big(\tfrac{\alpha_3\gamma_{\tH}^2}{2}
+  - \lambda_{F_{j_{kf}}}\Big)
+  \|\tH_{F_{j_{kf}}}\|^2 .
+  \label{eq:V3_final_bound}
+\end{align}
+
+If the parameters are chosen such that:
+\(\alpha_3>\tfrac{1}{\lambda_{\min}(Q)}\) and
+\(\lambda_{F_{j_{kf}}}>\tfrac{\alpha_3\gamma_{\tH}^2}{2}\). Define
+
+Then:
+$$
+  k_e\triangleq\tfrac{1}{2}\lambda_{\min}(Q)-\tfrac{1}{2\alpha_3}>0,\qquad
+  k_\theta\triangleq\lambda_{F_{j_{kf}}}-\tfrac{\alpha_3\gamma_{\tH}^2}{2}>0,
+$$
+and
+$$
+  c\triangleq\gamma_e\big(\gamma_{F_{j_{kf}}}\overline{\theta}_{F_{j_{kf}}}+\rho\big).
+$$
+
+From \eqref{eq:V3_final_bound}
+$$
+  \dot V_3 \le
+  -k_e\|e\|^2
+  - k_\theta\|\tH_{F_{j_{kf}}}\|^2
+  + c\|e\|,
+$$
+
+The final bound for the combined Lyapunov function derivative in Case 2 is given by:
+\[
+\dot V_3 \le -k_e\|e\|^2 - k_\theta\|\tH_{Fj_{kf}}\|^2 + c\|e\|.
+\]
+Since the design parameters are chosen such that $k_e > 0$ and $k_\theta > 0$,
+the derivative $\dot V_3$ is guaranteed to be negative outside a compact set,
+confirming that the combined state $(e, \tHF)$ is Ultimately
+Uniformly Bounded (UUB).
+
+The ultimate bounding sets are therefore given by:
+\begin{enumerate}
+    \item Ultimate Bounding Set for Tracking Error ($\Omega_e$):
+    \begin{align*}
+    e \in \Omega_e \triangleq \left\{ e \mid \|e\| \le \frac{c}{k_e} \right\}
+    \end{align*}
+    \item Ultimate Bounding Set for Weights ($\Omega_{\tH}$):
+    \begin{align*}
+    \tHF \in \Omega_{\tHF} \triangleq \left\{ \tHF \mid 
+    \|\tHF\| \le \sqrt{\frac{c}{k_\theta} \|e\|} \right\}
+    \end{align*}
+\end{enumerate}
+Thus, the tracking error $e$ and the output layer weights $\tHF$ are UUB.
+
+
+\subsection{Boundedness of Inner Layer Weights ($\tH_{j}$ for $j$ being
+an Inner Layer)}
+
+The boundedness of all inner layers is established recursively, relying
+fundamentally on the boundedness of the outermost layer weights.
+
+The Lyapunov derivative for a generic inner block $\tH_j$ is bounded
+by:
+\begin{equation}
+  \label{eq:inner_lyap}
+  \dot{V}_{\tH_j} \le \gamma_j \|e\| \|\tH_j\| + \lambda_{\Phi} 
+  \gamma_j \|\Phi\| \|\tH_j\| - \lambda_j \|\tH_j\|^2
+\end{equation}
+where $\gamma_j \triangleq \|\Phi_j'\|$ is the norm of the backpropagated
+Jacobian associated with layer $j$.
+
+The stability of $\tH_j$ relies on the crucial condition that the
+Jacobian norm $\gamma_j = \|\Phi_j'\|$ is bounded if and only if all
+subsequent weights $\|\tH_k\|$ (where $k$ is closer to the output) are
+bounded.
+
+\begin{enumerate}
+\item Base Case (Output Layer $\tH_{F_{j_{kf}}}$):
+The output-layer weights $\tH_{F_{j_{kf}}}$ were rigorously proven
+to be uniformly ultimately bounded (UUB) in the previous section
+(Case~1 and Case~2 analysis).
+
+\item Recursive Step (Backward Pass):
+We proceed recursively from the output layer towards the input.
+\begin{itemize}
+\item Fully Connected Layer (FCL) Weights
+($\tH_{F_0}, \dots$):
+Consider the layer immediately preceding the output, $\tH_{F_0}$.
+The associated Jacobian $\Phi'_{F_0}$ depends on
+$\tH_{F_{j_{kf}}}$ through the activation derivative
+$\phi'_{F_{j_{kf}}}$.
+Since $\|\tH_{F_{j_{kf}}}\|$ is UUB, it follows that
+$\|\Phi'_{F_0}\|$ is bounded by a constant $\gamma_{F_0}$.
+Applying this bound to~(\ref{eq:inner_lyap}) implies that
+$\tH_{F_0}$ is UUB.
+
+\item Convolutional Layer (CL) Weights
+($\tH_{C_i}, \dots$):
+The Jacobians for the convolutional layers, $\Phi'_{C_i}$,
+depend on the weights of all subsequent layers (both FCL and CL layers
+closer to the output).
+Since all subsequent weights are recursively shown to be bounded,
+each Jacobian norm $\gamma_{C_i}$ is bounded.
+Consequently, applying the bound to~(\ref{eq:inner_lyap}) shows that
+all convolutional-layer weights $\tH_{C_i}$ are UUB.
+\end{itemize}
+\end{enumerate}
+
+Thus, the imposition of the weight norm constraints $c_j$ and the resulting
+non-zero Lagrange multipliers $\lambda_j$ ensures, through a recursive argument
+stemming from the bounded output layer, that all inner layer weight vectors are
+UUB.
+
+
+% ============================================
+%         SECTION: SIMULATION RESULTS
+% ============================================
+\section{SIMULATION RESULTS}
+
+
+
+
+% ============================================
+%                   Appendix
+% ============================================
+%% The Appendices part is started with the command \appendix;
+%% appendix sections are then done as normal sections
+\appendix
+
+% ============================================
+%                   Bibliography
+% ============================================
+\bibliographystyle{IEEEtran}
+\bibliography{\template/refs}
+
+\end{document}

@@ -32,18 +32,7 @@
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor=green, urlcolor=blue}
 
 %--- Define custom math operators and notation ---%
-\newcommand{\vectheta}{\hat{\theta}}
-\newcommand{\grad}{\nabla}
-\newcommand{\btheta}{\bar{\theta}}
-\newcommand{\bOmega}{\bar{\Omega}}
-\newcommand{\bB}{\bar{B}}
-\newcommand{\sat}{\mathbf{sat}}
-\newcommand{\matPhi}{\hat{\Phi}}
-\newcommand{\PhiPrime}{\hat{\Phi}'}
-\newcommand{\PhiStar}{\Phi^*}
-\newcommand{\norm}[1]{\|#1\|}
-\DeclareMathOperator*{\diag}{diag}
-\DeclareMathOperator*{\vect}{vec}
+
 
 %--- Placeholder marker ---%
 \newcommand{\placeholder}{??}

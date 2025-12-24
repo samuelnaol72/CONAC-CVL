@@ -1,0 +1,101 @@
+% ============================================
+%         General Packages
+% ============================================
+\usepackage{balance}
+
+\usepackage{kotex}      % for Korean
+\usepackage{lipsum}     % for dummy text
+\usepackage{array}
+
+\usepackage{cite}   % for citation
+% \usepackage[
+%     backend=biber,
+%     % style=authoryear,
+%     % doi=false,
+%     isbn=false,
+%     url=false,
+%     minnames=1,
+%     maxcitenames=2, maxbibnames=6,
+%     % natbib=true,
+%     style=ieee,
+%     sorting=none,
+% ]{biblatex}
+
+\usepackage{amsmath,amsfonts}
+\usepackage{amssymb}
+\usepackage{soul}
+
+\def\publish{true}
+\def\draft{false}
+\usepackage{hyperref}
+\ifx \pub\publish % Publish
+    \hypersetup{
+        pdftoolbar=false,
+        pdfmenubar=false,
+        pdffitwindow=false,
+        pdfstartview={FitH},
+        pdftitle={},
+        pdfauthor={},
+        %     pdfsubject={},   	% subject of the document
+        %     pdfcreator={},   	% creator of the document
+        %     pdfproducer={}, 	% producer of the document
+        %     pdfkeywords={keyword1, key2, key3}, % list of keywords
+        %     pdfnewwindow=true,      	% links in new PDF window
+        colorlinks=true,
+        linkcolor=black,
+        citecolor=black,
+        filecolor=black,
+        urlcolor=black
+    }
+\else
+    \hypersetup{
+        pdftoolbar=false,
+        pdfmenubar=false,
+        pdffitwindow=false,
+        pdfstartview={FitH},
+        pdftitle={},
+        pdfauthor={},
+        %     pdfsubject={},   	% subject of the document
+        %     pdfcreator={},   	% creator of the document
+        %     pdfproducer={}, 	% producer of the document
+        %     pdfkeywords={keyword1, key2, key3}, % list of keywords
+        %     pdfnewwindow=true,      	% links in new PDF window
+        colorlinks=true,
+        linkcolor=blue,
+        citecolor=blue,
+        filecolor=blue,
+        urlcolor=blue
+    }
+\fi
+
+
+% \usepackage{cleveref}
+% \let\etoolboxforlistloop\forlistloop % save the good meaning of \forlistloop
+% \usepackage{autonum}
+% \let\forlistloop\etoolboxforlistloop % restore the good meaning of \forlistloop
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\usepackage{epsfig}
+\usepackage[dvipsnames]{xcolor}
+
+% MY PACKAGES ===================================
+
+\usepackage{svg}
+\usepackage{subfig}
+
+\usepackage{textcomp}
+\usepackage{stfloats}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{multicol}
+
+\let\proof\relax
+\let\endproof\relax
+\usepackage{amsthm}
+\usepackage{lipsum}
+\usepackage{tikz}
+\usepackage{comment}
