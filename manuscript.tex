@@ -1,109 +1,140 @@
-%----------------------------------------------------------------%
-%--- PREAMBLE ---------------------------------------------------%
-%----------------------------------------------------------------%
-\documentclass[journal]{IEEEtran}
-\usepackage[protrusion=true,expansion=true]{microtype}
-\AtBeginDocument{%
-  \emergencystretch=3em % allow extra stretch when needed
-  \sloppy               % loosen line breaking rules slightly
-  \tolerance=1000
-  \hyphenpenalty=500
-  \exhyphenpenalty=500
-}
+% ********************************************
+%
+%   Dear Authors,
+% 
+%   Please, read the following comments in Preset settings and adjust the settings according to your needs.
+%   Please, feel free to add more packages or macros if needed.
+%   Details of the pre-defined packages, symbols and macros can be found in the submodule "template". (See PDF files.)
+%   If you finished the adjustments, you can remove the comments for a clean document.
+% 
+%   Any questions or contributions are welcome.
+%   Please, contact to the author.
+%   Enjoy your writing.
+%
+%                               Myeongseok Ryu
+%  	    				dding_98@gm.gist.ac.kr
+%                                  09.Feb.2025
+%
+% ********************************************
 
-%----------------------------------------------------------------%
-%--- REQUIRED PACKAGES ------------------------------------------%
-%----------------------------------------------------------------%
-\usepackage{amsmath}        % For advanced math typesetting
-\usepackage{amssymb}        % For math symbols (like \mathbb{R})
-\usepackage{graphicx}       % For including images
-\usepackage{tikz}           % For drawing diagrams
-\usepackage{cite}           % For [1]-[3] style citations
-\usepackage{booktabs}       % For professional tables (like \toprule)
-\usepackage{diagbox}        % For \diagbox in tables
-\usepackage{comment}        % For comment environments
-\usepackage{needspace}
+% ********************************************
+% Revision History
+%   - 01.Jun.2025: Conference template created.
+% ********************************************
 
+% ********************************************
+% This project is highly ispired by the work of LMRES Lab, Hochschule München.
+% Thank you very much my dear friend, Niklas Monzen, for your kind support.
+% ********************************************
 
-%--- Optional / Good-to-have packages ---%
-\usepackage[T1]{fontenc}    % For font encoding
-\usepackage{textcomp}       % For \textdegree, etc.
-\usepackage{hyperref}       % For clickable links (e.g., in refs)
-\hypersetup{colorlinks=true, linkcolor=blue, citecolor=green, urlcolor=blue}
+% ============================================
+%         Preset 1. Document Type
+% ============================================
+\documentclass[conference]{IEEEtran}
+
+% THIS IS NEEDED FOR FINAL SUBMISSION
+\IEEEoverridecommandlockouts 
+% This command is only needed if you want to use the \thanks commands  
+%\overrideIEEEmargins 
+% Needed to meet printer requirements.
+
+% ============================================
+%         Preset 2. Local Path
+% ============================================
+% When you create "figures" or "movies" directories in the "src" (source code) directory, the file name including path can be long.
+% To avoid this, and to make it easier to adjust, you can define the alias for the path.
+% The examples are provided below.
+
+% \newcommand*{\FIGURESPATH}{./figures}
+% \newcommand*{\SIMFIGURESPATH}{./src/script_simulation/figures}
+% \newcommand*{\SLXFIGURESPATH}{./src/simulink_simulation/figures}
+% \newcommand*{\MOVIESPATH}{./movies}
+
+% ============================================
+%         Preset 3. Pre-defined Settings
+% ============================================
+% PLEASE DO NOT ADD OR REMOVE PACKAGES IN THE SUBMODULE LOCALLY!
+% CONTACT THE AUTHOR FOR ADJUSTMENTS.
+%
+% The packages are pre-defined in the submodule "Template".
+% If you need more packages, please add them after using pre-defined packages.
+
+\def\cmt{true} % true for comments, false for no comments
+\def\pub{false} % true for publication, false for draft
+\newcommand*{\template}{template} 
+\input{\template/preamble/preamble_conf.tex}
+
+% ============================================
+%     Preset 4. Additional Corrections
+% ============================================
+% correct bad hyphenation here
+% \hyphenation{op-tical net-works semi-conduc-tor}
+% \pagestyle{empty}
 
 %--- Define custom math operators and notation ---%
-\newcommand{\vectheta}{\hat{\theta}}
-\newcommand{\grad}{\nabla}
-\newcommand{\btheta}{\bar{\theta}}
+\newcommand{\vectheta}{\hat{\theta}}  % -> \estwth [estimated weight (theta)]
+\newcommand{\grad}{\nabla}            % -> \nabla (I think nabla is enough)
+\newcommand{\btheta}{\bar{\theta}}  
 \newcommand{\bOmega}{\bar{\Omega}}
 \newcommand{\bB}{\bar{B}}
-\newcommand{\sat}{\mathbf{sat}}
+\newcommand{\sat}{\mathbf{sat}}     % -> \mysat 
 \newcommand{\matPhi}{\hat{\Phi}}
 \newcommand{\PhiPrime}{\hat{\Phi}'}
 \newcommand{\PhiStar}{\Phi^*}
-\newcommand{\norm}[1]{\|#1\|}
-\DeclareMathOperator*{\diag}{diag}
-\DeclareMathOperator*{\vect}{vec}
-
-%--- Placeholder marker ---%
-\newcommand{\placeholder}{??}
-
-%--- Force Page Numbers ---%
-\pagestyle{plain} % This command adds page numbers
-
-%--- Correct bad hyphenation ---%
-\hyphenation{op-tical net-works semi-conduc-tor}
+% \newcommand{\norm}[1]{\|#1\|}
+\DeclareMathOperator*{\diag}{diag}  % -> \mydiag 
+\DeclareMathOperator*{\vect}{vec}   % -> \mysat
 
 
-%----------------------------------------------------------------%
-%--- DOCUMENT BEGIN ---------------------------------------------%
-%----------------------------------------------------------------%
 \begin{document}
 
-%----------------------------------------------------------------%
-%--- TITLE AND AUTHOR -------------------------------------------%
-%----------------------------------------------------------------%
+% ============================================
+%            TITLE and AUTHORS
+% ============================================
+\title{
+    CVL-based Constrained Optimization Neuro-Adaptive Control (CVL-CONAC) for Uncertain Control-Affine Systems
+    % {\footnotesize \textsuperscript{*}Note: Sub-titles are not captured for       https://ieeexplore.ieee.org  and
+    % should not be used}
+    \thanks{
+        This work was supported by my 10 fingers and Macbook Air M1.
+    }
+} 
 
-%--- Paper Title ---%
-\title{CVL-based Constrained Optimization Neuro-Adaptive Control (CVL-CONAC) for Uncertain Control-Affine Systems}
+\author{
+    \IEEEauthorblockN{1\textsuperscript{st} Myeongseok Ryu}
+    \IEEEauthorblockA{\textit{Cho Chun Shik Graduate School of Mobility} \\
+    \textit{Korean Advanced Institute of Science and Technology (KAIST)}\\
+    Daejeon, Republic of Korea \\
+    dding\_98@kaist.ac.kr}
+\and
+    \IEEEauthorblockN{2\textsuperscript{nd} Niklas Monzen}
+    \IEEEauthorblockA{\textit{Laboratory for Mechatronic and Renewable Energy Systems} \\
+    \textit{Hochschule München (HM) University of Applied Sciences}\\
+    Munich, Germany \\
+    niklas.monzen@hm.edu}
+}
 
-%--- Author Block ---%
-\author{ \IEEEauthorblockN{Myeongseok Ryu, Kyunghwan Choi, et al.}
-  \IEEEauthorblockA{Affiliation Details and Contact Information} }
+\maketitle 
+\thispagestyle{empty}
 
-% Make the title area
-\maketitle
-% Add page number to first page
-\thispagestyle{plain}
-
-%----------------------------------------------------------------%
-%--- ABSTRACT ---------------------------------------------------%
-%----------------------------------------------------------------%
+% ============================================
+%         ABSTRACT and KEYWORDS
+% ============================================
 \begin{abstract}
-This study proposes a Convolutional Layer (CVL)-based Constrained
-Optimization Neuro-Adaptive Controller (CVL-CONAC) for uncertain control-affine
-nonlinear systems. The controller approximates the ideal stabilizing law using a
-hybrid CVL-FCL architecture that processes historical state data, ensuring a
-robust representation of system dynamics. The adaptation law is derived by
-formulating the control problem as a constrained minimization problem
-of the tracking error, subject to weight norm constraints and
-control input norm constraints. Stability analysis, based on the
-Lyapunov approach, rigorously proves that the tracking error and all network
-weight vectors remain Uniformly Ultimately Bounded(UUB), thereby
-ensuring stable and constrained online adaptation.
+    This study proposes a Convolutional Layer (CVL)-based Constrained Optimization Neuro-Adaptive Controller (CVL-CONAC) for uncertain control-affine nonlinear systems. 
+    The controller approximates the ideal stabilizing law using a hybrid CVL-FCL architecture that processes historical state data, ensuring a robust representation of system dynamics. 
+    The adaptation law is derived by formulating the control problem as a constrained minimization problem of the tracking error, subject to weight norm constraints and control input norm constraints. 
+    Stability analysis, based on the Lyapunov approach, rigorously proves that the tracking error and all network weight vectors remain Uniformly Ultimately Bounded(UUB), thereby ensuring stable and constrained online adaptation.
 \end{abstract}
 
-%----------------------------------------------------------------%
-%--- INDEX TERMS ------------------------------------------------%
-%----------------------------------------------------------------%
 \begin{IEEEkeywords}
-Neuro-adaptive control, Constrained optimization, Convolutional Layers (CVL),
+    Neuro-adaptive control, Constrained optimization, Convolutional Layers (CVL),
 Lyapunov approach, Asymptotic convergence.
 \end{IEEEkeywords}
 
-%----------------------------------------------------------------%
-%--- NOTATION ---------------------------------------------------%
-%----------------------------------------------------------------%
+% ============================================
+%         Notation
+% ============================================
 \section*{Notation}
 In this study, the following notation is used: $\mathbb{R}^{n}$ denotes the
 $n$-dimensional Euclidean space. $\mathbf{x} = [x_i]$ denotes a vector, and
@@ -119,6 +150,8 @@ eigenvalue of $\mathbf{A}$.
 \section{Introduction}
 
 \subsection{Motivation and Background}
+
+dummy citation \cite{Zaccarian:2001aa}
 
 Neuro-Adaptive Control (NAC) has emerged as a crucial tool for controlling
 systems with unknown dynamics, leveraging the universal approximation
@@ -146,11 +179,11 @@ complex, time-dependent dynamics[??].
 
 The main contributions of this study are threefold:
 \begin{itemize}
-  \item Adapting the CONAC formulation specifically for a CVL-FCL
-  architecture;
-  \item Applying the method to a generic control-affine system;
-  \item Rigorously proving the UUB of the tracking error and all network
-  weights under the derived adaptation law.
+    \item Adapting the CONAC formulation specifically for a CVL-FCL
+    architecture;
+    \item Applying the method to a generic control-affine system;
+    \item Rigorously proving the UUB of the tracking error and all network
+    weights under the derived adaptation law.
 \end{itemize}
 
 %----------------------------------------------------------------%
@@ -163,9 +196,12 @@ The main contributions of this study are threefold:
 We consider an uncertain generic control-affine nonlinear
 system, where the control gain matrix $g(x)$ is assumed to be square and
 positive definite ($n=m$ and $g(x) \succ 0$):
-\begin{equation}
-\label{eq:sys_full}
-\dot{x} = f(x) + g(x)\,\mathbf{sat}(u)
+\begin{equation} \label{eq:sys_full}
+    \ddtt\mv{x} 
+    = 
+    \mv{f}(\mv{x}) 
+    + 
+    \mv{g}(\mv{x})\mysat(\mv{u})
 \end{equation}
 where $x \in \mathbb{R}^n$ is the state vector and $u \in \mathbb{R}^n$ is the
 control input.
@@ -207,7 +243,7 @@ This formulation is used for stability analysis.
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.9\columnwidth, height=0.2\textheight, keepaspectratio]{CVLCONACArch.png}
+    \includegraphics[width=0.9\columnwidth, height=0.2\textheight, keepaspectratio]{figures/CVLCONACArch.png}
     \caption{Proposed CVL-CONAC architecture.}
     \label{fig:architecture}
 \end{figure}
@@ -657,7 +693,13 @@ Thus, the imposition of the weight norm constraints $c_j$ and the resulting non-
 \section{Simulations}
 To validate the proposed CVL-CONAC
 
-
+%--- Results Placeholder ---%
+\begin{figure*}[!t]
+  \centering
+  \includegraphics{figures/dummy_figure.JPG}
+  \caption{Tracking error comparison: CVL-CONAC vs. traditional NAC. (Placeholder for Figure 3)}
+  \label{fig:tracking_errors}
+\end{figure*}
 
 %----------------------------------------------------------------%
 %--- VI. CONCLUSION & FUTURE WORK -------------------------------%
@@ -678,20 +720,17 @@ Future work will involve real-time experimental validation of the CVL-CONAC
 architecture and detailed investigation into optimal CVL filter topology
 selection.
 
-%--- Results Placeholder ---%
-\begin{figure*}[!t]
-  \centering
-  [??] [Tracking Error (e) Comparison: CVL-CONAC vs. NAC w/o Constraints]
-  \caption{Tracking error comparison: CVL-CONAC vs. traditional NAC. (Placeholder for Figure 3)}
-  \label{fig:tracking_errors}
-\end{figure*}
+% ============================================
+%                   Appendix
+% ============================================
+%% The Appendices part is started with the command \appendix;
+%% appendix sections are then done as normal sections
+\appendix
 
-%----------------------------------------------------------------%
-%--- REFERENCES -------------------------------------------------%
-%----------------------------------------------------------------%
-
-% \begin{thebibliography}{99}
-
-% \end{thebibliography}
+% ============================================
+%                   Bibliography
+% ============================================
+\bibliographystyle{IEEEtran}
+\bibliography{\template/refs}
 
 \end{document}
